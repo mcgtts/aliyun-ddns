@@ -6,6 +6,7 @@ const Core = require('@alicloud/pop-core');
 const isDocker = require('is-docker');
 const network = require('./net')
 const os = require('os');
+const CronJob = require('cron').CronJob;
 
 let AccessKey = null;
 let AccessKeySecret = null;
@@ -207,3 +208,8 @@ network.on('online', function () {
 }).on('offline', function () {
   console.log('检测到断网，网络在线后将进行下一次记录更新');
 });
+
+// 10分钟执行一次
+new CronJob('0 */10 * * * *', function() {
+  MAIN()
+}, null, true, 'America/Los_Angeles');
