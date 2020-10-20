@@ -5,6 +5,7 @@ const publicIp = require('public-ip');
 const Core = require('@alicloud/pop-core');
 const isDocker = require('is-docker');
 const network = require('./net')
+const os = require('os');
 
 let AccessKey = null;
 let AccessKeySecret = null;
@@ -163,6 +164,20 @@ function getExternalIp() {
   })
 }
 
+///获取本机ip///
+function getLocalIPAdress() {
+  var interfaces = os.networkInterfaces();
+  for (var devName in interfaces) {
+      var iface = interfaces[devName];
+      for (var i = 0; i < iface.length; i++) {
+          var alias = iface[i];
+          if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
+              return alias.address;
+          }
+      }
+  }
+}
+
 // 时间
 function getTime() {
   const now = new Date();
@@ -178,12 +193,12 @@ function getTime() {
 
 async function MAIN() {
   const resultDomain = typeof Domain === 'string' ? [Domain] : Domain
-  const externalIp = await getExternalIp()
+  const localIp = getLocalIPAdress()
 
-  console.log(getTime(), '当前公网 ip:', externalIp);
+  console.log(getTime(), '当前本机 ip:', localIp);
 
   for (let i = 0; i < resultDomain.length; i++) {
-    await handleOneDomain(resultDomain[i], externalIp)
+    await handleOneDomain(resultDomain[i], localIp)
   }
 }
 
