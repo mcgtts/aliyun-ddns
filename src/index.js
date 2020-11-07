@@ -6,21 +6,25 @@ const Core = require('@alicloud/pop-core');
 const isDocker = require('is-docker');
 const network = require('./net')
 const os = require('os');
+const { config } = require('process');
 const CronJob = require('cron').CronJob;
 
 let AccessKey = null;
 let AccessKeySecret = null;
 let Domain = null;
+let IPPrefix = null; // ip 前缀
 
 if (isDocker()) {
   AccessKey = process.env.AccessKey
   AccessKeySecret = process.env.AccessKeySecret
   Domain = process.env.Domain && process.env.Domain.split(',')
+  IPPrefix = process.env.IPPrefix
 } else {
   const config = require('../config.json');
   AccessKey = config.AccessKey
   AccessKeySecret = config.AccessKeySecret
   Domain = config.Domain
+  IPPrefix = config.IPPrefix
 }
 
 if (!AccessKey || !AccessKeySecret || !Domain) {
@@ -173,7 +177,9 @@ function getLocalIPAdress() {
       for (var i = 0; i < iface.length; i++) {
           var alias = iface[i];
           if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
+            if(IPPrefix && alias.address.startsWith(IPPrefix)){
               return alias.address;
+            }
           }
       }
   }
